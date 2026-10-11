@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cipher lab · CyberStudy Lab</title><meta name="theme-color" content="#05070f"><link rel="icon" href="../assets/favicon-96.png"><link rel="apple-touch-icon" href="../assets/logo-192.png"><link rel="manifest" href="../manifest.json"><link rel="stylesheet" href="../css/style.css"></head>
+<body data-root="../" data-page="pages/cipher-lab.html" data-tool="cipher">
+<main id="main"><noscript><p class="card">JavaScript is off, so menus and tools are unavailable. Basic links: <a href="../index.html">Home</a> <a href="../pages/academy.html">Academy</a> <a href="../pages/progress.html">Progress</a> <a href="../pages/settings.html">Settings</a> </p></noscript>
+<h1>Cipher lab</h1><p>Classical ciphers, shown step by step. Everything runs in your browser — nothing is sent anywhere.</p>
+
+<div class="card">
+<h2 style="margin-top:0">Caesar cipher</h2>
+<p>Shifts each letter by a fixed amount. Try brute-forcing all 26 shifts to break it without knowing the key.</p>
+<label for="c-text">Text</label><textarea id="c-text">Attack at dawn</textarea>
+<p><label for="c-shift">Shift</label><input id="c-shift" type="number" value="3" style="width:6rem"></p>
+<p><button id="c-enc">Encrypt</button> <button id="c-dec" class="alt">Decrypt</button> <button id="c-brute" class="alt">Brute-force all 26</button></p>
+<pre id="c-out" aria-live="polite"></pre>
+</div>
+
+<div class="card">
+<h2 style="margin-top:0">Vigenère cipher</h2>
+<p>Uses a repeating keyword so each letter shifts by a different amount, defeating simple frequency analysis.</p>
+<label for="v-text">Text</label><textarea id="v-text">Meet me at midnight</textarea>
+<p><label for="v-key">Keyword</label><input id="v-key" value="cyberstudy"></p>
+<p><button id="v-enc">Encrypt</button> <button id="v-dec" class="alt">Decrypt</button></p>
+<pre id="v-out" aria-live="polite"></pre>
+</div>
+
+<div class="card">
+<h2 style="margin-top:0">XOR cipher</h2>
+<p>XORs each byte with a repeating key. The same operation both encrypts and decrypts. Output shown as hex.</p>
+<label for="x-text">Text</label><textarea id="x-text">Launch sequence initiated</textarea>
+<p><label for="x-key">Key</label><input id="x-key" value="redteam"></p>
+<p><button id="x-enc">Encrypt → hex</button> <button id="x-dec" class="alt">Decrypt hex → text</button></p>
+<pre id="x-out" aria-live="polite"></pre>
+</div>
+
+</main>
+<script src="../js/storage.js"></script><script src="../js/app.js"></script><script src="../js/pwa.js"></script><script src="../js/chatbot.js"></script>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+
+  function caesarShift(str,shift){shift=((shift%26)+26)%26;return str.replace(/[a-zA-Z]/g,function(c){var base=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-base+shift)%26+base)})}
+  $('c-enc').onclick=function(){$('c-out').textContent=caesarShift($('c-text').value,parseInt($('c-shift').value||'0',10))};
+  $('c-dec').onclick=function(){$('c-out').textContent=caesarShift($('c-text').value,-parseInt($('c-shift').value||'0',10))};
+  $('c-brute').onclick=function(){var t=$('c-text').value,lines=[];for(var s=0;s<26;s++)lines.push(s+': '+caesarShift(t,s));$('c-out').textContent=lines.join('\n')};
+
+  function vigenere(str,key,dir){key=key.replace(/[^a-zA-Z]/g,'').toLowerCase();if(!key)return str;var ki=0,out='';
+    for(var i=0;i<str.length;i++){var c=str[i];if(/[a-zA-Z]/.test(c)){var base=c<='Z'?65:97,k=key.charCodeAt(ki%key.length)-97,shift=dir===1?k:-k;out+=String.fromCharCode((c.charCodeAt(0)-base+shift+26)%26+base);ki++}else out+=c}
+    return out}
+  $('v-enc').onclick=function(){$('v-out').textContent=vigenere($('v-text').value,$('v-key').value,1)};
+  $('v-dec').onclick=function(){$('v-out').textContent=vigenere($('v-text').value,$('v-key').value,-1)};
+
+  function xorBytes(text,key){var out=[];for(var i=0;i<text.length;i++)out.push(text.charCodeAt(i)^key.charCodeAt(i%key.length));return out}
+  $('x-enc').onclick=function(){var bytes=xorBytes($('x-text').value,$('x-key').value||'key');$('x-out').textContent=bytes.map(function(b){return b.toString(16).padStart(2,'0')}).join(' ')};
+  $('x-dec').onclick=function(){var hex=$('x-out').textContent.trim(),key=$('x-key').value||'key';if(!hex){$('x-out').textContent='Encrypt something first, then decrypt.';return}
+    var bytes=hex.split(/\s+/).map(function(h){return parseInt(h,16)});$('x-out').textContent=bytes.map(function(b,i){return String.fromCharCode(b^key.charCodeAt(i%key.length))}).join('')};
+})();
+</script>
+</body></html>

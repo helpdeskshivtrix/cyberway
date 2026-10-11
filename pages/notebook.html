@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Notebook · CyberStudy Lab</title><meta name="theme-color" content="#05070f"><link rel="icon" href="../assets/favicon-96.png"><link rel="apple-touch-icon" href="../assets/logo-192.png"><link rel="manifest" href="../manifest.json"><link rel="stylesheet" href="../css/style.css">
+<style>
+ #nb-layout{display:flex;min-height:60vh;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:1rem}
+ #nb-col,#nb-pages-col{width:180px;flex:none;border-right:1px solid var(--line);background:var(--bg2);overflow:auto}
+ #nb-pages-col{width:200px}
+ .nb-head{padding:.6rem .8rem;font-size:.8rem;color:var(--mu);display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+ .nb-head button{background:none;border:none;color:var(--cy);cursor:pointer;font-size:1.1rem;line-height:1;padding:0 .3rem}
+ .nb-item{padding:.5rem .8rem;font-size:.9rem;cursor:pointer;border-left:3px solid transparent;color:var(--mu)}
+ .nb-item:hover{background:var(--card)}
+ .nb-item.active{background:#1a2550;border-left-color:var(--cy);color:var(--tx)}
+ .nb-item .snippet{display:block;font-size:.72rem;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #nb-editor-col{flex:1;display:flex;flex-direction:column;min-width:0}
+ #nb-title{font-size:1.3rem;font-weight:700;background:none;border:none;color:var(--tx);padding:1rem 1.2rem .3rem;outline:none;font-family:inherit;width:100%}
+ #nb-meta{padding:0 1.2rem .5rem;font-size:.75rem;color:var(--mu)}
+ #nb-toolbar{display:flex;gap:.3rem;padding:.5rem 1rem;border-top:1px solid var(--line);border-bottom:1px solid var(--line);flex-wrap:wrap}
+ #nb-toolbar button{width:2rem;height:2rem;padding:0;border-radius:7px}
+ #nb-content{flex:1;overflow:auto;padding:1rem 1.2rem 3rem;outline:none;line-height:1.7}
+ #nb-content:empty:before{content:'Start typing your notes...';color:var(--mu)}
+ #nb-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--mu);flex-direction:column;gap:.6rem}
+ @media(max-width:800px){#nb-layout{flex-direction:column}#nb-col,#nb-pages-col{width:auto;max-height:140px}}
+</style>
+</head>
+<body data-root="../" data-page="pages/notebook.html">
+<main id="main"><noscript><p class="card">JavaScript is off, so menus and tools are unavailable. Basic links: <a href="../index.html">Home</a> <a href="../pages/academy.html">Academy</a> <a href="../pages/progress.html">Progress</a> <a href="../pages/settings.html">Settings</a> </p></noscript>
+<h1>📓 Notebook</h1>
+<p>A OneNote-style place for your own study notes. Saved in this browser only — use Export/Import below to back it up or move it between devices.</p>
+<p><button id="nb-export">⬇ Export backup</button> <button id="nb-import-btn" class="alt">⬆ Import backup</button><input type="file" id="nb-import-file" accept=".json" style="display:none"></p>
+
+<div id="nb-layout">
+ <div id="nb-col">
+  <div class="nb-head">Notebooks <button id="nb-add-notebook">+</button></div>
+  <div id="nb-list"></div>
+ </div>
+ <div id="nb-pages-col">
+  <div class="nb-head">Pages <button id="nb-add-page">+</button></div>
+  <div id="nb-page-list"></div>
+ </div>
+ <div id="nb-editor-col"></div>
+</div>
+
+</main>
+<script src="../js/storage.js"></script><script src="../js/app.js"></script><script src="../js/pwa.js"></script><script src="../js/chatbot.js"></script>
+<script>
+(function(){
+var STORAGE_KEY='cyberstudy_notebook_v1';
+var data=load(),state={nbId:null,pageId:null};
+
+function load(){
+ try{var raw=localStorage.getItem(STORAGE_KEY);if(raw)return JSON.parse(raw)}catch(e){}
+ var nbId=uid(),pageId=uid();
+ return {notebooks:[{id:nbId,title:'My First Notebook'}],
+  pages:[{id:pageId,notebookId:nbId,title:'Welcome',content:'<p>Welcome to your notebook! Click a page on the left, or create a new one with the + button.</p>',updated:Date.now()}]};
+}
+function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}catch(e){}}
+function uid(){return 'id-'+Math.random().toString(36).slice(2,10)+Date.now().toString(36)}
+function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+function renderNotebooks(){
+ var list=document.getElementById('nb-list');list.innerHTML='';
+ if(!state.nbId&&data.notebooks.length)state.nbId=data.notebooks[0].id;
+ data.notebooks.forEach(function(nb){
+  var div=document.createElement('div');div.className='nb-item'+(nb.id===state.nbId?' active':'');div.textContent=nb.title;
+  div.onclick=function(){state.nbId=nb.id;state.pageId=null;renderAll()};
+  list.appendChild(div)
+ });
+}
+function renderPages(){
+ var list=document.getElementById('nb-page-list');list.innerHTML='';
+ var pages=data.pages.filter(function(p){return p.notebookId===state.nbId});
+ if(!state.pageId&&pages.length)state.pageId=pages[0].id;
+ pages.forEach(function(p){
+  var div=document.createElement('div');div.className='nb-item'+(p.id===state.pageId?' active':'');
+  var plain=(p.content||'').replace(/<[^>]*>/g,' ').trim().slice(0,36);
+  div.innerHTML='<div>'+esc(p.title||'Untitled')+'</div><span class="snippet">'+esc(plain)+'</span>';
+  div.onclick=function(){saveCurrentPage();state.pageId=p.id;renderAll()};
+  list.appendChild(div)
+ });
+}
+function btn(cmd,label){return '<button data-cmd="'+cmd+'">'+label+'</button>'}
+function renderEditor(){
+ var col=document.getElementById('nb-editor-col');
+ var page=data.pages.filter(function(p){return p.id===state.pageId})[0];
+ if(!page){col.innerHTML='<div id="nb-empty"><div style="font-size:1.8rem">📝</div><div>No page selected — create one with the + above</div></div>';return}
+ col.innerHTML='<input id="nb-title" placeholder="Page title"><div id="nb-meta"></div>'+
+  '<div id="nb-toolbar">'+btn('bold','<b>B</b>')+btn('italic','<i>I</i>')+btn('underline','<u>U</u>')+
+  '<span style="width:1px;background:var(--line);margin:0 .4rem"></span>'+
+  btn('insertUnorderedList','•')+btn('insertOrderedList','1.')+
+  '<span style="width:1px;background:var(--line);margin:0 .4rem"></span>'+
+  btn('formatBlock:H2','H2')+btn('formatBlock:H3','H3')+btn('formatBlock:BLOCKQUOTE','"')+btn('formatBlock:PRE','&lt;/&gt;')+
+  '<span style="width:1px;background:var(--line);margin:0 .4rem"></span>'+btn('removeFormat','✕')+'</div>'+
+  '<div id="nb-content" contenteditable="true"></div>';
+ document.getElementById('nb-title').value=page.title||'';
+ document.getElementById('nb-meta').textContent='Last edited '+new Date(page.updated).toLocaleString();
+ document.getElementById('nb-content').innerHTML=page.content||'';
+ document.getElementById('nb-title').addEventListener('input',function(){saveCurrentPage(true)});
+ document.getElementById('nb-content').addEventListener('input',function(){saveCurrentPage(true)});
+ document.querySelectorAll('#nb-toolbar button').forEach(function(b){
+  b.addEventListener('click',function(){
+   var cmd=b.dataset.cmd;document.getElementById('nb-content').focus();
+   if(cmd.indexOf('formatBlock:')===0)document.execCommand('formatBlock',false,cmd.split(':')[1]);
+   else document.execCommand(cmd,false,null);
+   saveCurrentPage(true)
+  })
+ });
+}
+function saveCurrentPage(skipRefresh){
+ var page=data.pages.filter(function(p){return p.id===state.pageId})[0];if(!page)return;
+ var t=document.getElementById('nb-title'),c=document.getElementById('nb-content');
+ if(t)page.title=t.value;if(c)page.content=c.innerHTML;page.updated=Date.now();save();
+ if(!skipRefresh)renderPages();
+}
+document.getElementById('nb-add-notebook').onclick=function(){
+ var title=prompt('Notebook name:','New Notebook');if(!title)return;
+ var nb={id:uid(),title:title};data.notebooks.push(nb);state.nbId=nb.id;state.pageId=null;save();renderAll();
+};
+document.getElementById('nb-add-page').onclick=function(){
+ if(!state.nbId){alert('Create or select a notebook first.');return}
+ var page={id:uid(),notebookId:state.nbId,title:'Untitled page',content:'',updated:Date.now()};
+ data.pages.push(page);state.pageId=page.id;save();renderAll();
+ setTimeout(function(){var t=document.getElementById('nb-title');if(t){t.focus();t.select()}},50);
+};
+function renderAll(){renderNotebooks();renderPages();renderEditor()}
+
+document.getElementById('nb-export').onclick=function(){
+ saveCurrentPage();
+ var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+ var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+ a.download='cyberstudy-notebook-backup-'+new Date().toISOString().slice(0,10)+'.json';
+ document.body.appendChild(a);a.click();document.body.removeChild(a);
+};
+document.getElementById('nb-import-btn').onclick=function(){document.getElementById('nb-import-file').click()};
+document.getElementById('nb-import-file').onchange=function(evt){
+ var file=evt.target.files[0];if(!file)return;
+ var reader=new FileReader();
+ reader.onload=function(e){
+  try{
+   var incoming=JSON.parse(e.target.result);
+   if(!incoming.notebooks||!incoming.pages)throw new Error('bad format');
+   if(confirm('Import this backup? Choose OK to merge with your current notes, or Cancel to abort.')){
+    incoming.notebooks.forEach(function(nb){if(!data.notebooks.filter(function(x){return x.id===nb.id}).length)data.notebooks.push(nb)});
+    incoming.pages.forEach(function(p){if(!data.pages.filter(function(x){return x.id===p.id}).length)data.pages.push(p)});
+    save();state.nbId=null;state.pageId=null;renderAll();alert('Import complete.');
+   }
+  }catch(err){alert("Could not read that file — make sure it's a backup exported from this notebook.")}
+ };
+ reader.readAsText(file);evt.target.value='';
+};
+window.addEventListener('beforeunload',function(){saveCurrentPage()});
+renderAll();
+})();
+</script>
+</body></html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Port scanner simulator · CyberStudy Lab</title><meta name="theme-color" content="#05070f"><link rel="icon" href="../assets/favicon-96.png"><link rel="apple-touch-icon" href="../assets/logo-192.png"><link rel="manifest" href="../manifest.json"><link rel="stylesheet" href="../css/style.css"></head>
+<body data-root="../" data-page="pages/port-scanner-lab.html" data-tool="portscan">
+<main id="main"><noscript><p class="card">JavaScript is off, so menus and tools are unavailable. Basic links: <a href="../index.html">Home</a> <a href="../pages/academy.html">Academy</a> <a href="../pages/progress.html">Progress</a> <a href="../pages/settings.html">Settings</a> </p></noscript>
+<h1>Port scanner simulator</h1>
+<p class="card">This is a simulation. It sends no real network traffic and cannot scan actual devices or websites — it's here to teach you what scan output looks like and what common ports mean.</p>
+
+<div class="card">
+<p><label for="ps-host">Simulated host</label>
+<select id="ps-host">
+<option value="webserver">web-srv-01 (10.10.1.5) — web server</option>
+<option value="dbserver">db-srv-02 (10.10.1.8) — database server</option>
+<option value="workstation">ws-finance-14 (10.10.2.41) — workstation</option>
+<option value="locked">firewall-edge (10.10.0.1) — hardened edge device</option>
+</select></p>
+<p><button id="ps-go">Start scan</button></p>
+<pre id="ps-term" style="min-height:200px">Press "Start scan" to begin...</pre>
+</div>
+
+<div class="card scroll">
+<h2 style="margin-top:0">Results</h2>
+<table><thead><tr><th>Port</th><th>Service</th><th>State</th><th>Notes</th></tr></thead><tbody id="ps-body"><tr><td colspan="4">No scan run yet.</td></tr></tbody></table>
+</div>
+
+<div class="card scroll">
+<h2 style="margin-top:0">Common ports reference</h2>
+<table><thead><tr><th>Port</th><th>Service</th><th>Protocol</th></tr></thead><tbody>
+<tr><td>21</td><td>FTP</td><td>TCP</td></tr><tr><td>22</td><td>SSH</td><td>TCP</td></tr><tr><td>23</td><td>Telnet</td><td>TCP</td></tr>
+<tr><td>25</td><td>SMTP</td><td>TCP</td></tr><tr><td>53</td><td>DNS</td><td>TCP/UDP</td></tr><tr><td>80</td><td>HTTP</td><td>TCP</td></tr>
+<tr><td>110</td><td>POP3</td><td>TCP</td></tr><tr><td>443</td><td>HTTPS</td><td>TCP</td></tr><tr><td>3306</td><td>MySQL</td><td>TCP</td></tr><tr><td>3389</td><td>RDP</td><td>TCP</td></tr>
+</tbody></table>
+</div>
+
+</main>
+<script src="../js/storage.js"></script><script src="../js/app.js"></script><script src="../js/pwa.js"></script><script src="../js/chatbot.js"></script>
+<script>
+(function(){
+var HOSTS={
+ webserver:{name:'web-srv-01',ip:'10.10.1.5',ports:[
+  {p:22,s:'SSH',state:'open',note:'OpenSSH 8.9 — fine, but check for weak passwords'},
+  {p:80,s:'HTTP',state:'open',note:'nginx 1.18 — redirects to HTTPS'},
+  {p:443,s:'HTTPS',state:'open',note:'TLS 1.3, valid cert'},
+  {p:21,s:'FTP',state:'closed',note:''},
+  {p:3306,s:'MySQL',state:'filtered',note:'Firewall blocks direct access — good practice'},
+  {p:3389,s:'RDP',state:'closed',note:''}]},
+ dbserver:{name:'db-srv-02',ip:'10.10.1.8',ports:[
+  {p:22,s:'SSH',state:'open',note:'OpenSSH 7.4 — outdated, should be patched'},
+  {p:3306,s:'MySQL',state:'open',note:'Exposed to internal network — should be filtered too'},
+  {p:80,s:'HTTP',state:'closed',note:''},{p:443,s:'HTTPS',state:'closed',note:''},
+  {p:21,s:'FTP',state:'closed',note:''},{p:3389,s:'RDP',state:'closed',note:''}]},
+ workstation:{name:'ws-finance-14',ip:'10.10.2.41',ports:[
+  {p:445,s:'SMB',state:'open',note:'File sharing — common ransomware target, ensure patched'},
+  {p:3389,s:'RDP',state:'open',note:'Remote desktop open — should require VPN + MFA'},
+  {p:22,s:'SSH',state:'closed',note:''},{p:80,s:'HTTP',state:'closed',note:''},
+  {p:443,s:'HTTPS',state:'closed',note:''},{p:21,s:'FTP',state:'closed',note:''}]},
+ locked:{name:'firewall-edge',ip:'10.10.0.1',ports:[
+  {p:22,s:'SSH',state:'filtered',note:'Management access restricted to admin VLAN only'},
+  {p:443,s:'HTTPS',state:'filtered',note:'Admin panel, IP allow-list only'},
+  {p:80,s:'HTTP',state:'closed',note:''},{p:21,s:'FTP',state:'closed',note:''},
+  {p:23,s:'Telnet',state:'closed',note:'Correctly disabled'},{p:3389,s:'RDP',state:'closed',note:''}]}
+};
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
+var term=document.getElementById('ps-term'),body=document.getElementById('ps-body'),btn=document.getElementById('ps-go');
+btn.onclick=async function(){
+ var host=HOSTS[document.getElementById('ps-host').value];
+ btn.disabled=true;term.textContent='';body.innerHTML='';
+ function log(line){term.textContent+=line+'\n';term.scrollTop=term.scrollHeight}
+ log('Starting simulated scan of '+host.ip+' ('+host.name+')');await sleep(350);
+ log('Host is up (simulated latency 0.0042s).');await sleep(350);
+ for(var i=0;i<host.ports.length;i++){var row=host.ports[i];await sleep(300);
+  log('PORT '+row.p+'/tcp\t'+row.state.toUpperCase()+'\t'+row.s);
+  var tr=document.createElement('tr');
+  tr.innerHTML='<td>'+row.p+'</td><td>'+row.s+'</td><td><span class="tag" style="border-color:'+(row.state==='open'?'var(--ok)':row.state==='filtered'?'var(--pu)':'var(--bad)')+';color:'+(row.state==='open'?'var(--ok)':row.state==='filtered'?'var(--pu)':'var(--bad)')+'">'+row.state+'</span></td><td>'+(row.note||'—')+'</td>';
+  body.appendChild(tr)}
+ await sleep(250);
+ log('Scan complete: '+host.ports.filter(function(x){return x.state==='open'}).length+' open, '+host.ports.filter(function(x){return x.state==='closed'}).length+' closed, '+host.ports.filter(function(x){return x.state==='filtered'}).length+' filtered.');
+ btn.disabled=false};
+})();
+</script>
+</body></html>

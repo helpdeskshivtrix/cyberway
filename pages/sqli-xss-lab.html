@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SQLi &amp; XSS playground · CyberStudy Lab</title><meta name="theme-color" content="#05070f"><link rel="icon" href="../assets/favicon-96.png"><link rel="apple-touch-icon" href="../assets/logo-192.png"><link rel="manifest" href="../manifest.json"><link rel="stylesheet" href="../css/style.css"></head>
+<body data-root="../" data-page="pages/sqli-xss-lab.html" data-tool="sqlixss">
+<main id="main"><noscript><p class="card">JavaScript is off, so menus and tools are unavailable. Basic links: <a href="../index.html">Home</a> <a href="../pages/academy.html">Academy</a> <a href="../pages/progress.html">Progress</a> <a href="../pages/settings.html">Settings</a> </p></noscript>
+<h1>SQL injection &amp; XSS playground</h1>
+<p class="card">A self-contained, fake vulnerable mini-app. Nothing here touches a real database or server — it's all simulated in your browser so you can learn the patterns safely. Never try these techniques against systems you don't own or have explicit written permission to test.</p>
+
+<div class="card">
+<h2 style="margin-top:0">Fake login form — SQL injection</h2>
+<p>This simulated login naively builds a query like <code>SELECT * FROM users WHERE username='&lt;input&gt;' AND password='&lt;input&gt;'</code> without sanitizing input. Try to log in without knowing a real password.</p>
+<label for="sq-user">Username</label><input id="sq-user" placeholder="try: admin">
+<label for="sq-pass">Password</label><input id="sq-pass" placeholder="try: wrongpassword, then try: ' OR '1'='1">
+<p><button id="sq-go">Log in</button></p>
+<pre id="sq-out" aria-live="polite"></pre>
+<p><a href="#" id="sq-hint-link">Need a hint?</a></p>
+<p class="card" id="sq-hint" style="display:none">The query becomes <code>... AND password='' OR '1'='1'</code>. Since <code>'1'='1'</code> is always true, the condition passes regardless of the real password. The fix: parameterized queries / prepared statements, never string-concatenated SQL.</p>
+</div>
+
+<div class="card">
+<h2 style="margin-top:0">Fake comment box — Cross-Site Scripting</h2>
+<p>This simulated comment box can render your input as raw HTML inside a sandboxed, script-blocked preview frame — the same mistake that lets attackers inject scripts into real pages.</p>
+<label for="xs-input">Your comment</label><textarea id="xs-input">Nice article!</textarea>
+<p><button id="xs-unsafe">Post comment (unsafe render)</button> <button id="xs-safe" class="alt">Post comment (sanitized render)</button></p>
+<div id="xs-output"></div>
+<p><a href="#" id="xs-hint-link">Need a hint?</a></p>
+<p class="card" id="xs-hint" style="display:none">The "unsafe render" drops your text straight into the page's HTML, so a tag like <code>&lt;img onerror=...&gt;</code> would run. The "sanitized render" escapes special characters first, so the browser shows the tags as plain text instead of running them. Always escape or sanitize user input before rendering it as HTML.</p>
+</div>
+
+</main>
+<script src="../js/storage.js"></script><script src="../js/app.js"></script><script src="../js/pwa.js"></script><script src="../js/chatbot.js"></script>
+<script>
+(function(){
+var $=function(id){return document.getElementById(id)};
+var FAKE_USERS=[{username:'admin',password:'Sup3rSecret!2026'},{username:'guest',password:'guest123'}];
+
+$('sq-go').onclick=function(){
+ var user=$('sq-user').value,pass=$('sq-pass').value,out=$('sq-out');
+ var injected=/('|--|\bOR\b|\bAND\b)/i.test(pass)&&/1'\s*=\s*'1|'\s*=\s*'/i.test(pass);
+ var record=FAKE_USERS.filter(function(u){return u.username===user})[0];
+ var legit=record&&record.password===pass;
+ if(legit){out.className='ok';out.textContent='✔ Logged in as "'+user+'" with the correct password. (No injection needed — you just knew it!)'}
+ else if(injected){out.className='ok';out.textContent='⚠ Login "succeeded" — but you never supplied the real password!\n\nSimulated query:\nSELECT * FROM users WHERE username=\''+user+'\' AND password=\''+pass+'\'\n\nBecause your input contains a quote that closes the string early, the WHERE clause becomes always-true logic, bypassing the password check. This is a classic SQL injection.'}
+ else{out.className='bad';out.textContent='✘ Login failed for "'+user+'". (Try the hint below.)'}
+};
+$('sq-hint-link').onclick=function(e){e.preventDefault();$('sq-hint').style.display='block'};
+
+function escapeHtml(str){return str.replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+$('xs-unsafe').onclick=function(){
+ var val=$('xs-input').value,container=$('xs-output');
+ container.innerHTML='<p><strong>Unsafe render (sandboxed, scripts blocked):</strong></p>';
+ var iframe=document.createElement('iframe');
+ iframe.style.cssText='width:100%;height:140px;border:1px solid var(--line);border-radius:10px;background:#fff';
+ iframe.sandbox='allow-same-origin';
+ container.appendChild(iframe);
+ var doc=iframe.contentWindow.document;doc.open();
+ doc.write('<body style="font-family:sans-serif;padding:8px;font-size:13px;color:#111">'+val+'</body>');doc.close();
+};
+$('xs-safe').onclick=function(){
+ var val=$('xs-input').value;
+ $('xs-output').innerHTML='<div class="card"><strong>Sanitized render:</strong><br>'+escapeHtml(val)+'</div>';
+};
+$('xs-hint-link').onclick=function(e){e.preventDefault();$('xs-hint').style.display='block'};
+})();
+</script>
+</body></html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Home · CyberStudy Lab</title><meta name="theme-color" content="#05070f"><link rel="icon" href="assets/favicon-96.png"><link rel="apple-touch-icon" href="assets/logo-192.png"><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="css/style.css">
+<style>
+ #boot{position:fixed;inset:0;z-index:999;background:#05070f;display:flex;align-items:center;justify-content:center;overflow:hidden}
+ #boot-grid{position:absolute;inset:-2px;background-image:linear-gradient(rgba(34,229,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(34,229,255,.07) 1px,transparent 1px);background-size:42px 42px;animation:boot-grid-move 10s linear infinite;mask-image:radial-gradient(circle at 50% 45%,rgba(0,0,0,.9) 0%,transparent 70%);-webkit-mask-image:radial-gradient(circle at 50% 45%,rgba(0,0,0,.9) 0%,transparent 70%)}
+ @keyframes boot-grid-move{from{background-position:0 0}to{background-position:42px 42px}}
+ .boot-scan{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(34,229,255,.55),transparent);animation:boot-scan 3.2s linear infinite;opacity:.7}
+ @keyframes boot-scan{from{top:-5%}to{top:105%}}
+ .boot-spark{position:absolute;width:3px;height:3px;border-radius:50%;background:#22e5ff;box-shadow:0 0 8px #22e5ff,0 0 16px #22e5ff;animation:boot-float 6s ease-in-out infinite;opacity:.8}
+ @keyframes boot-float{0%,100%{transform:translateY(0) scale(1);opacity:.3}50%{transform:translateY(-24px) scale(1.4);opacity:.9}}
+ #boot-content{position:relative;z-index:2;text-align:center;padding:20px}
+ #boot-logo-wrap{position:relative;width:170px;height:170px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center}
+ #boot-ring{position:absolute;inset:-14px;border-radius:50%;border:2px solid rgba(34,229,255,.35);border-top-color:#22e5ff;animation:boot-spin 2.2s linear infinite}
+ #boot-ring2{position:absolute;inset:-28px;border-radius:50%;border:1px solid rgba(155,107,255,.3);border-bottom-color:#9b6bff;animation:boot-spin 3.4s linear infinite reverse}
+ @keyframes boot-spin{to{transform:rotate(360deg)}}
+ #boot-logo{width:140px;height:140px;object-fit:contain;border-radius:22px;filter:drop-shadow(0 0 18px rgba(34,229,255,.5)) drop-shadow(0 0 40px rgba(59,107,255,.3));animation:boot-pulse 2.6s ease-in-out infinite}
+ @keyframes boot-pulse{0%,100%{filter:drop-shadow(0 0 16px rgba(34,229,255,.45)) drop-shadow(0 0 36px rgba(59,107,255,.28))}50%{filter:drop-shadow(0 0 28px rgba(34,229,255,.8)) drop-shadow(0 0 60px rgba(59,107,255,.45))}}
+ #boot-brand{font-size:28px;font-weight:800;letter-spacing:.03em;margin:0 0 4px;background:linear-gradient(90deg,#fff 0%,#22e5ff 45%,#3b6bff 75%,#fff 100%);background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:boot-shine 3.5s linear infinite}
+ @keyframes boot-shine{to{background-position:-220% center}}
+ #boot-sub{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#f59e0b;margin:0 0 26px;opacity:.9}
+ #boot-status{font-family:Consolas,'Courier New',monospace;font-size:12px;color:#7fe6c5;min-height:18px;margin-bottom:14px}
+ #boot-status .boot-cursor{display:inline-block;width:7px;background:#22e5ff;margin-left:2px;animation:boot-blink .9s step-end infinite}
+ @keyframes boot-blink{50%{opacity:0}}
+ #boot-track{width:240px;height:6px;margin:0 auto;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid #1d2c5a;overflow:hidden}
+ #boot-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#3b6bff,#22e5ff);box-shadow:0 0 12px rgba(34,229,255,.7);transition:width .18s linear}
+ #boot-pct{margin-top:9px;font-size:11px;color:#9fb0dd;letter-spacing:.06em}
+ #boot-skip{position:fixed;bottom:18px;right:18px;z-index:1000;background:rgba(255,255,255,.06);border:1px solid #1d2c5a;color:#9fb0dd;font-size:11px;padding:7px 14px;border-radius:999px;cursor:pointer}
+ #boot-skip:hover{color:#fff;border-color:#22e5ff}
+ #boot.boot-fade{opacity:0;pointer-events:none;transition:opacity .5s ease}
+ @media(prefers-reduced-motion:reduce){#boot{display:none!important}#boot-skip{display:none!important}}
+</style>
+</head>
+<body data-root="" data-page="index.html">
+
+<div id="boot">
+ <div id="boot-grid"></div>
+ <div id="boot-content">
+  <div id="boot-logo-wrap">
+   <div id="boot-ring"></div><div id="boot-ring2"></div>
+   <img id="boot-logo" src="assets/logo-512.png" alt="ShivTrix CyberWay">
+  </div>
+  <h1 id="boot-brand">CYBERSTUDY LAB</h1>
+  <div id="boot-sub">Learning Academy</div>
+  <div id="boot-status">Initializing<span class="boot-cursor"></span></div>
+  <div id="boot-track"><div id="boot-fill"></div></div>
+  <div id="boot-pct">0%</div>
+ </div>
+</div>
+<button id="boot-skip">Skip ▸</button>
+
+<main id="main"><noscript><p class="card">JavaScript is off, so menus and tools are unavailable. Basic links: <a href="index.html">Home</a> <a href="pages/academy.html">Academy</a> <a href="pages/progress.html">Progress</a> <a href="pages/settings.html">Settings</a> </p></noscript>
+<h1>Welcome to CyberStudy Lab</h1><p>Learn cybersecurity step by step. Start with the basics, practise with safe tools, then test yourself.</p><div class="grid"><a class="card" href="pages/computer-basics.html"><strong>Start learning</strong><br>Begin with computer basics.</a><a class="card" href="pages/password-lab.html"><strong>Practice tools</strong><br>Passwords, hashes, encoding, subnets.</a><a class="card" href="pages/quizzes.html"><strong>Take a quiz</strong><br>Check what you know.</a><a class="card" href="pages/progress.html"><strong>See progress</strong><br>Saved in this browser.</a></div><p>First time here? Open <a href="pages/academy.html">All modules</a>.</p>
+</main>
+<script src="js/storage.js"></script><script src="js/app.js"></script><script src="js/pwa.js"></script><script src="js/chatbot.js"></script>
+<script>
+(function(){
+ var boot=document.getElementById('boot');
+ if(!boot)return;
+ // Only play the boot animation once per browser session, and skip it if the user prefers reduced motion.
+ if(sessionStorage.getItem('cs_booted')==='1'||matchMedia('(prefers-reduced-motion: reduce)').matches){boot.remove();document.getElementById('boot-skip').remove();return}
+
+ var bg=document.getElementById('boot-grid').parentNode;
+ for(var i=0;i<18;i++){
+  var s=document.createElement('div');s.className='boot-spark';
+  s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';
+  s.style.animationDelay=(Math.random()*6)+'s';s.style.animationDuration=(4+Math.random()*4)+'s';
+  bg.appendChild(s);
+ }
+ for(var j=0;j<2;j++){var sl=document.createElement('div');sl.className='boot-scan';sl.style.animationDelay=(j*1.6)+'s';bg.appendChild(sl)}
+
+ var MESSAGES=['Initializing core systems','Loading encryption modules','Mounting learning modules','Connecting practice labs','Calibrating network simulator','Syncing notebook engine','Starting AI assistant','Finalizing interface'];
+ var statusEl=document.getElementById('boot-status'),fill=document.getElementById('boot-fill'),pctEl=document.getElementById('boot-pct');
+ var pct=0,msgIndex=0,done=false;
+ function setMsg(m){statusEl.innerHTML=m+'<span class="boot-cursor"></span>'}
+ setMsg(MESSAGES[0]);
+ var msgInt=setInterval(function(){if(done)return;msgIndex=(msgIndex+1)%MESSAGES.length;setMsg(MESSAGES[msgIndex])},420);
+ var barInt=setInterval(function(){
+  if(done)return;
+  var inc=pct<70?(2+Math.random()*4):(0.4+Math.random()*1.2);
+  pct=Math.min(100,pct+inc);
+  fill.style.width=pct+'%';pctEl.textContent=Math.floor(pct)+'%';
+  if(pct>=100){clearInterval(barInt);clearInterval(msgInt);setMsg('Ready');setTimeout(finish,400)}
+ },130);
+
+ function finish(){
+  if(done)return;done=true;
+  clearInterval(barInt);clearInterval(msgInt);
+  sessionStorage.setItem('cs_booted','1');
+  boot.classList.add('boot-fade');
+  var skip=document.getElementById('boot-skip');if(skip)skip.remove();
+  setTimeout(function(){boot.remove()},520);
+ }
+ document.getElementById('boot-skip').onclick=finish;
+ setTimeout(finish,6000); // safety net: never trap the visitor
+})();
+</script>
+</body></html>

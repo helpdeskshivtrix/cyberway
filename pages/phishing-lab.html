@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Phishing analysis lab · CyberStudy Lab</title><meta name="theme-color" content="#05070f"><link rel="icon" href="../assets/favicon-96.png"><link rel="apple-touch-icon" href="../assets/logo-192.png"><link rel="manifest" href="../manifest.json"><link rel="stylesheet" href="../css/style.css"></head>
+<body data-root="../" data-page="pages/phishing-lab.html" data-tool="phishing">
+<main id="main"><noscript><p class="card">JavaScript is off, so menus and tools are unavailable. Basic links: <a href="../index.html">Home</a> <a href="../pages/academy.html">Academy</a> <a href="../pages/progress.html">Progress</a> <a href="../pages/settings.html">Settings</a> </p></noscript>
+<h1>Phishing analysis lab</h1>
+<p>Spot the red flags in sample emails. These are fabricated examples for training — no real brand's live content is reproduced.</p>
+
+<div class="card">
+<div id="ph-email" style="background:#f4f5f7;color:#111;border-radius:10px;padding:1rem;font-size:0.92rem"></div>
+<div id="ph-picker" style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:.5rem"></div>
+<p><button id="ph-check">Check my answers</button> <button id="ph-next" class="alt">Next example →</button></p>
+<div class="card" id="ph-explain" style="display:none"></div>
+</div>
+
+<p class="card" id="ph-score" style="display:none">Score so far: <b id="ph-score-val">0</b> / <span id="ph-score-total">0</span></p>
+
+</main>
+<script src="../js/storage.js"></script><script src="../js/app.js"></script><script src="../js/pwa.js"></script><script src="../js/chatbot.js"></script>
+<script>
+(function(){
+var $=function(id){return document.getElementById(id)};
+var SAMPLES=[
+ {from:'IT-Support@secure-helpdesk-alert.com',to:'you@company.com',subject:'URGENT: Your mailbox will be suspended in 24 hours',
+  body:"Dear User,\n\nOur system detected unusual activity on your account. Your mailbox will be PERMANENTLY DELETED within 24 hours unless you verify your identity immediately.\n\nClick here to verify: http://secure-helpdesk-alert.com.verify-account.ru/login\n\nFailure to act will result in permanent loss of access.\n\nIT Support Team",
+  flags:['urgency','mismatched-domain','generic-greeting','suspicious-link','threat']},
+ {from:'payroll@yourcompany-hr.net',to:'you@company.com',subject:'Updated Direct Deposit Form - Action Required',
+  body:"Hi,\n\nWe're updating our payroll system. Please download and fill out the attached form with your bank details and send it back by end of day, or your next paycheck may be delayed.\n\nThanks,\nHR Payroll",
+  flags:['mismatched-domain','urgency','attachment','generic-greeting']},
+ {from:'notifications@github.com',to:'you@company.com',subject:'New sign-in to your account from Chrome on Windows',
+  body:"Hi there,\n\nWe noticed a new sign-in to your GitHub account from a new device.\n\nDevice: Chrome on Windows\nLocation: Mumbai, India\nTime: Oct 10, 2026, 9:14 PM IST\n\nIf this was you, no action is needed. If you don't recognize this activity, please review your account security settings.\n\n— The GitHub Team",
+  flags:['legit-footer']}
+];
+var OPTIONS=['urgency','mismatched-domain','generic-greeting','suspicious-link','threat','spelling','attachment','legit-footer'];
+var LABELS={'urgency':'Artificial urgency / fear tactic','mismatched-domain':"Sender domain doesn't match the real company",'generic-greeting':'Generic greeting ("Dear User")','suspicious-link':'Suspicious / mismatched link','threat':'Threatens negative consequences','spelling':'Spelling or grammar mistakes','attachment':'Unexpected attachment or form request','legit-footer':'Looks legitimate — no major red flags'};
+var cur=0,score=0,total=0,picked=[];
+
+function render(){
+ var s=SAMPLES[cur];picked=[];$('ph-explain').style.display='none';
+ $('ph-email').innerHTML='<div><b>From:</b> '+s.from+'</div><div><b>To:</b> '+s.to+'</div><div><b>Subject:</b> '+s.subject+'</div><hr><div style="white-space:pre-wrap;line-height:1.6">'+s.body.replace(/(https?:\/\/\S+)/g,'<span style="color:#1a73e8;text-decoration:underline">$1</span>')+'</div>';
+ var picker=$('ph-picker');picker.innerHTML='';
+ OPTIONS.forEach(function(opt){
+  var chip=document.createElement('span');
+  chip.className='tag';chip.style.cursor='pointer';chip.textContent=LABELS[opt];chip.dataset.flag=opt;
+  chip.onclick=function(){chip.classList.toggle('active-chip');chip.style.background=chip.classList.contains('active-chip')?'var(--bl)':'';chip.style.color=chip.classList.contains('active-chip')?'#fff':'';
+   var i=picked.indexOf(opt);if(i===-1)picked.push(opt);else picked.splice(i,1)};
+  picker.appendChild(chip)
+ });
+}
+$('ph-check').onclick=function(){
+ var s=SAMPLES[cur],correct=s.flags,right=0;
+ document.querySelectorAll('#ph-picker .tag').forEach(function(chip){
+  var f=chip.dataset.flag,isCorrect=correct.indexOf(f)>=0,isPicked=picked.indexOf(f)>=0;
+  if(isCorrect&&isPicked){chip.style.borderColor='var(--ok)';chip.style.color='var(--ok)';right++}
+  else if(isCorrect&&!isPicked){chip.style.borderColor='var(--ok)';chip.style.color='var(--ok)'}
+  else if(!isCorrect&&isPicked){chip.style.borderColor='var(--bad)';chip.style.color='var(--bad)'}
+ });
+ total++;if(right===correct.length&&picked.length===correct.length)score++;
+ $('ph-score').style.display='block';$('ph-score-val').textContent=score;$('ph-score-total').textContent=total;
+ var list=s.flags.map(function(f){return '<li>'+LABELS[f]+'</li>'}).join('');
+ var ex=$('ph-explain');ex.style.display='block';
+ ex.innerHTML='<strong>Red flags in this email:</strong><ul>'+(list||'<li>None — this one looks legitimate.</li>')+'</ul>';
+};
+$('ph-next').onclick=function(){cur=(cur+1)%SAMPLES.length;render()};
+render();
+})();
+</script>
+</body></html>
